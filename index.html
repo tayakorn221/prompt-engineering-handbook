@@ -84,6 +84,12 @@ pre .cm{color:#8fa39b}
 pre .gd{color:#9ed0b5}
 pre .bd{color:#e88c74}
 
+pre{position:relative}
+.copy-btn{position:absolute;top:.5rem;right:.55rem;font-family:'IBM Plex Mono',monospace;font-size:.65rem;letter-spacing:.03em;color:#cdd6d0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);padding:.2rem .55rem;border-radius:6px;cursor:pointer;opacity:0;transition:opacity .15s,background .15s,color .15s}
+pre:hover .copy-btn,.copy-btn:focus-visible{opacity:1}
+.copy-btn:hover{background:rgba(255,255,255,.14);color:#fff}
+.copy-btn.done{color:#9ed0b5;border-color:#9ed0b5;opacity:1}
+@media(max-width:680px){.copy-btn{opacity:.85}}
 .prompt-label{font-family:'IBM Plex Mono',monospace;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin:1.4rem 0 -.4rem}
 
 table{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;line-height:1.6}
@@ -812,6 +818,27 @@ map.forEach((a,el)=>io.observe(el));
 const tg=document.getElementById('tocToggle'),toc=document.getElementById('toc');
 if(tg)tg.addEventListener('click',()=>toc.classList.toggle('open'));
 if(toc)toc.addEventListener('click',e=>{if(e.target.closest('a')&&innerWidth<=1080)toc.classList.remove('open');});
+
+// ปุ่มคัดลอก prompt ในกล่องโค้ดทุกกล่อง
+document.querySelectorAll('main pre').forEach(pre=>{
+  const btn=document.createElement('button');
+  btn.type='button';btn.className='copy-btn';btn.textContent='คัดลอก';
+  btn.setAttribute('aria-label','คัดลอกข้อความในกล่องนี้');
+  btn.addEventListener('click',()=>{
+    const code=pre.querySelector('code');
+    const text=((code?code.textContent:pre.textContent)||'').replace(/\s+$/,'');
+    const done=()=>{btn.textContent='คัดลอกแล้ว ✓';btn.classList.add('done');setTimeout(()=>{btn.textContent='คัดลอก';btn.classList.remove('done');},1600);};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done).catch(()=>copyFallback(text,done,btn));}
+    else{copyFallback(text,done,btn);}
+  });
+  pre.appendChild(btn);
+});
+function copyFallback(text,done,btn){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.top='-9999px';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand('copy');done();}catch(e){btn.textContent='คัดลอกไม่ได้';}
+  document.body.removeChild(ta);
+}
 </script>
 </body>
 </html>
